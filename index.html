@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>हिंदी समाचार वाचन प्रतियोगिता</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --saffron: #d97706;
+    --ink: #1f2937;
+    --bg: #fdf9f3;
+    --card: #ffffff;
+    --border: #e7dfd2;
+    --green: #16a34a;
+    --red: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+    min-height: 100vh;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 560px;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  }
+  h1 {
+    font-size: 1.4rem;
+    margin: 0 0 4px;
+    color: var(--saffron);
+  }
+  .sub { color: #6b7280; margin-bottom: 22px; font-size: 0.92rem; }
+  label { display: block; font-size: 0.88rem; margin: 14px 0 6px; font-weight: 600; }
+  input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+  }
+  button {
+    margin-top: 22px;
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    background: var(--saffron);
+    color: white;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary { background: var(--ink); }
+  .passage-box {
+    background: #fff8ee;
+    border: 1px solid #f3d9ad;
+    border-radius: 10px;
+    padding: 18px;
+    font-size: 1.15rem;
+    line-height: 1.9;
+    margin: 18px 0;
+  }
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .timer {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: var(--saffron);
+    font-size: 1.1rem;
+  }
+  .recording-dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--red);
+    margin-right: 6px;
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 18px 0;
+  }
+  .result-cell {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .result-cell .val { font-size: 1.5rem; font-weight: 700; color: var(--saffron); }
+  .result-cell .lbl { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
+  .hidden { display: none; }
+  .warn {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-top: 14px;
+  }
+  .transcript-preview {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 10px;
+    max-height: 80px;
+    overflow-y: auto;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- STEP 1: Registration -->
+  <div id="step-register">
+    <h1>हिंदी समाचार वाचन प्रतियोगिता</h1>
+    <div class="sub">कृपया अपना विवरण भरें और आरंभ करें।</div>
+
+    <label>नाम / Name</label>
+    <input id="f-name" type="text" placeholder="पूरा नाम" />
+
+    <label>पदनाम / Designation</label>
+    <input id="f-designation" type="text" placeholder="पदनाम" />
+
+    <label>कर्मचारी संख्या / Employee No.</label>
+    <input id="f-empno" type="text" placeholder="कर्मचारी संख्या" />
+
+    <label>कार्यालय / Office</label>
+    <input id="f-office" type="text" placeholder="कार्यालय का नाम" />
+
+    <button id="btn-start">आरंभ करें / Start</button>
+    <div id="reg-warn" class="warn hidden"></div>
+  </div>
+
+  <!-- STEP 2: Reading -->
+  <div id="step-reading" class="hidden">
+    <h1>अनुच्छेद पढ़ें</h1>
+    <div class="status-row">
+      <span><span class="recording-dot"></span>रिकॉर्डिंग जारी है</span>
+      <span class="timer" id="timer">00:00</span>
+    </div>
+    <div class="passage-box" id="passage-text">लोड हो रहा है...</div>
+    <div class="transcript-preview" id="transcript-preview"></div>
+    <button id="btn-submit">जमा करें / Submit</button>
+  </div>
+
+  <!-- STEP 3: Result -->
+  <div id="step-result" class="hidden">
+    <h1>परिणाम</h1>
+    <div class="sub">आपकी प्रविष्टि सफलतापूर्वक दर्ज कर ली गई है।</div>
+    <div class="result-grid">
+      <div class="result-cell"><div class="val" id="r-score">-</div><div class="lbl">कुल स्कोर</div></div>
+      <div class="result-cell"><div class="val" id="r-rank">-</div><div class="lbl">वर्तमान रैंक</div></div>
+      <div class="result-cell"><div class="val" id="r-accuracy">-</div><div class="lbl">शुद्धता %</div></div>
+      <div class="result-cell"><div class="val" id="r-wpm">-</div><div class="lbl">गति (शब्द/मिनट)</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ==== CONFIGURE THIS ====
+const APPS_SCRIPT_URL = ' https://script.google.com/macros/s/AKfycbw4z_aokKOC77t9F1RgxulGguq_a3h6sJYun1x5QOXu0exKT5q-1i2H2StGownn_HkHig/exec';
+// =========================
+
+let currentPassage = null;
+let recognition = null;
+let finalTranscript = '';
+let startTime = null;
+let timerInterval = null;
+
+const stepRegister = document.getElementById('step-register');
+const stepReading = document.getElementById('step-reading');
+const stepResult = document.getElementById('step-result');
+const regWarn = document.getElementById('reg-warn');
+
+document.getElementById('btn-start').addEventListener('click', startCompetition);
+document.getElementById('btn-submit').addEventListener('click', submitReading);
+
+function getRegistrationData() {
+  return {
+    name: document.getElementById('f-name').value.trim(),
+    designation: document.getElementById('f-designation').value.trim(),
+    empNo: document.getElementById('f-empno').value.trim(),
+    office: document.getElementById('f-office').value.trim()
+  };
+}
+
+async function startCompetition() {
+  const reg = getRegistrationData();
+  if (!reg.name || !reg.designation || !reg.empNo || !reg.office) {
+    regWarn.textContent = 'कृपया सभी फ़ील्ड भरें।';
+    regWarn.classList.remove('hidden');
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    regWarn.textContent = 'यह ब्राउज़र स्पीच रिकग्निशन सपोर्ट नहीं करता। कृपया Google Chrome का उपयोग करें।';
+    regWarn.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const passageResp = await fetch(APPS_SCRIPT_URL + '?action=getPassage');
+    currentPassage = await passageResp.json();
+    if (currentPassage.error) {
+      regWarn.textContent = currentPassage.error;
+      regWarn.classList.remove('hidden');
+      return;
+    }
+  } catch (err) {
+    regWarn.textContent = 'अनुच्छेद लोड नहीं हो सका। कृपया पुनः प्रयास करें।';
+    regWarn.classList.remove('hidden');
+    return;
+  }
+
+  regWarn.classList.add('hidden');
+  document.getElementById('passage-text').textContent = currentPassage.text;
+
+  stepRegister.classList.add('hidden');
+  stepReading.classList.remove('hidden');
+
+  finalTranscript = '';
+  recognition = new SpeechRecognition();
+  recognition.lang = 'hi-IN';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onresult = (event) => {
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const t = event.results[i][0].transcript;
+      if (event.results[i].isFinal) finalTranscript += ' ' + t;
+      else interim += t;
+    }
+    document.getElementById('transcript-preview').textContent = (finalTranscript + ' ' + interim).trim();
+  };
+
+  recognition.onerror = (event) => {
+    console.error('Speech recognition error:', event.error);
+  };
+
+  // auto-restart if the browser times out recognition mid-reading
+  recognition.onend = () => {
+    if (startTime && !timerStopped) {
+      try { recognition.start(); } catch (e) {}
+    }
+  };
+
+  let timerStopped = false;
+  startTime = Date.now();
+  recognition.start();
+
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const mm = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const ss = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = mm + ':' + ss;
+  }, 250);
+
+  window._stopRecognition = () => {
+    timerStopped = true;
+    try { recognition.stop(); } catch (e) {}
+  };
+}
+
+async function submitReading() {
+  clearInterval(timerInterval);
+  if (window._stopRecognition) window._stopRecognition();
+
+  const durationSec = (Date.now() - startTime) / 1000;
+  const reg = getRegistrationData();
+  const submitBtn = document.getElementById('btn-submit');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'सबमिट हो रहा है...';
+
+  const payload = {
+    action: 'submit',
+    name: reg.name,
+    designation: reg.designation,
+    empNo: reg.empNo,
+    office: reg.office,
+    passageId: currentPassage.id,
+    transcript: finalTranscript.trim(),
+    durationSec: durationSec
+  };
+
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    const result = await resp.json();
+
+    document.getElementById('r-score').textContent = result.finalScore;
+    document.getElementById('r-rank').textContent = '#' + result.rank;
+    document.getElementById('r-accuracy').textContent = result.accuracy + '%';
+    document.getElementById('r-wpm').textContent = result.wpm;
+
+    stepReading.classList.add('hidden');
+    stepResult.classList.remove('hidden');
+  } catch (err) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'जमा करें / Submit';
+    alert('सबमिट करने में त्रुटि हुई। कृपया पुनः प्रयास करें।');
+  }
+}
+</script>
+</body>
+</html>
