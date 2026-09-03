@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>लीडरबोर्ड — हिंदी वाचन प्रतियोगिता</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --saffron: #d97706; --ink: #1f2937; --bg: #fdf9f3; --border: #e7dfd2; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    background: var(--bg); color: var(--ink); padding: 28px 16px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  h1 { color: var(--saffron); margin-bottom: 4px; }
+  .sub { color: #6b7280; margin-bottom: 20px; font-size: 0.9rem; }
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+  th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+  th { background: #fff3de; font-weight: 700; color: #92400e; }
+  tr:last-child td { border-bottom: none; }
+  .rank { font-weight: 700; color: var(--saffron); }
+  .score { font-weight: 700; }
+  .empty { text-align: center; padding: 30px; color: #9ca3af; }
+  .refresh-note { font-size: 0.8rem; color: #9ca3af; margin-top: 14px; text-align: right; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>लीडरबोर्ड</h1>
+  <div class="sub">हिंदी समाचार वाचन प्रतियोगिता — आयोजक दृश्य</div>
+  <table>
+    <thead>
+      <tr>
+        <th>रैंक</th><th>नाम</th><th>पदनाम</th><th>कार्यालय</th>
+        <th>अवधि (से.)</th><th>गति (WPM)</th><th>शुद्धता %</th><th>स्कोर</th>
+      </tr>
+    </thead>
+    <tbody id="leaderboard-body">
+      <tr><td colspan="8" class="empty">लोड हो रहा है...</td></tr>
+    </tbody>
+  </table>
+  <div class="refresh-note">हर 10 सेकंड में स्वतः अपडेट होता है</div>
+</div>
+
+<script>
+// ==== CONFIGURE THIS (same URL as index.html) ====
+const APPS_SCRIPT_URL = ' https://script.google.com/macros/s/AKfycbw4z_aokKOC77t9F1RgxulGguq_a3h6sJYun1x5QOXu0exKT5q-1i2H2StGownn_HkHig/exec';
+// ===================================================
+
+async function loadLeaderboard() {
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL + '?action=getLeaderboard');
+    const rows = await resp.json();
+    const body = document.getElementById('leaderboard-body');
+
+    if (!rows || rows.length === 0) {
+      body.innerHTML = '<tr><td colspan="8" class="empty">अभी तक कोई प्रविष्टि नहीं</td></tr>';
+      return;
+    }
+
+    body.innerHTML = rows.map((r, i) => `
+      <tr>
+        <td class="rank">#${i + 1}</td>
+        <td>${escapeHtml(r.name)}</td>
+        <td>${escapeHtml(r.designation)}</td>
+        <td>${escapeHtml(r.office)}</td>
+        <td>${Math.round(r.duration)}</td>
+        <td>${r.wpm}</td>
+        <td>${r.accuracy}%</td>
+        <td class="score">${r.score}</td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    document.getElementById('leaderboard-body').innerHTML =
+      '<tr><td colspan="8" class="empty">लोड करने में त्रुटि</td></tr>';
+  }
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+loadLeaderboard();
+setInterval(loadLeaderboard, 10000);
+</script>
+</body>
+</html>
